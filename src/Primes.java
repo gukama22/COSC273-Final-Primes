@@ -6,11 +6,13 @@ public class Primes {
     public static final int MAX_VALUE = Integer.MAX_VALUE;
     public static final int N_PRIMES = 105_097_565;
     public static final int ROOT_MAX = (int) Math.sqrt(MAX_VALUE);
-    public static final int MAX_SMALL_PRIME = 1 << 20;
+    public static final int MAX_SMALL_PRIME = 1 << 20; //1048576
 
     // Use the sieve of Eratosthenes to compute all prime numbers up
     // to max. The largest allowed value of max is MAX_SMALL_PRIME.
     public static int[] getSmallPrimesUpTo(int max) {
+
+        System.out.println("max small prime " + MAX_SMALL_PRIME);
 
         // check that the value max is in bounds, and throw an
         // exception if not
@@ -60,15 +62,13 @@ public class Primes {
         return primes;
     }
 
-    // Count the number of true values in an array of boolean values,
-    // arr
+    // Count the number of true values in an array of boolean values, arr
     public static int trueCount(boolean[] arr) {
         int count = 0;
         for (int i = 0; i < arr.length; i++) {
             if (arr[i])
                 count++;
         }
-
         return count;
     }
 
