@@ -16,16 +16,16 @@ public class PrimeTester {
         Primes.baselinePrimes(knownPrimes);
 
         // run warmup before timing
-//        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
-//            ParallelPrimes.optimizedPrimes(testPrimes);
-//        }
+        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+            ParallelPrimes.optimizedPrimes(testPrimes);
+        }
 
         // run main iterations
         long start = System.nanoTime();
 
-      //  for (int i = 0; i < TEST_ITERATIONS; i++) {
+        for (int i = 0; i < TEST_ITERATIONS; i++) {
         ParallelPrimes.optimizedPrimes(testPrimes);
-     //   }
+        }
 
         long elapsedMS = (System.nanoTime() - start) / 1_000_000;
 
