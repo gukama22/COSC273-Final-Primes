@@ -1,136 +1,129 @@
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.concurrent.*;
+
+import static java.lang.Math.*;
 
 public class ParallelPrimes {
-    //BASELINE: 149771ms
-    //FIXING VALUES: 102068ms
+
+    public static final int MAX_VALUE = Integer.MAX_VALUE; //2^31-1 = 2147483647
+    public static final int N_PRIMES = 105_097_565;
+    public static final int ROOT_MAX = (int) Math.sqrt(MAX_VALUE);
+    public static final int MAX_SMALL_PRIME = 1 << 20; //1,048,576
+
+    public static final int corecount = Runtime.getRuntime().availableProcessors();
 
     // replace this string with your team name
-    public static final String TEAM_NAME = "hopper";
-    public static final int MAX_VALUE = Integer.MAX_VALUE;
-    public static final int ROOT_MAX = (int) Math.sqrt(MAX_VALUE);
-    public static final int MAX_SMALL_PRIME = 1 << 20; //1048576
+    public static final String TEAM_NAME = "Sunny-Day";
 
-    // Use the sieve of Eratosthenes to compute all prime numbers up
-    // to max. The largest allowed value of max is MAX_SMALL_PRIME.
-    public static int[] getSmallPrimesUpTo(int max) {
-        // check that the value max is in bounds, and throw an exception if not
-        if (max > MAX_SMALL_PRIME) throw new RuntimeException("The value " + max + "exceeds the maximum small prime value (" + MAX_SMALL_PRIME + ")");
-
-
-        // isPrime[i] will be true if and only if i is prime. Initially set isPrime[i] to true for all i >= 2.
-        boolean[] isPrime = new boolean[max];
-        for (int i = 2; i < max; i++) {
-            isPrime[i] = true;
-        }
-
-        // Apply the sieve of Eratosthenes to find primes.
-        // The procedure iterates over values i = 2, 3,....
-        // If isPrime[i] == true, then i is a prime.
-        // When a prime value i is found, set isPrime[j] = false for all multiples j of i.
-        // The procedure terminates once we've examined all values i up to Math.sqrt(max).
-        int rootMax = (int) Math.sqrt(max);
-        for (int i = 2; i < rootMax; i++) {
-            if (isPrime[i]) {
-                for (int j = 2 * i; j < max; j += i) {
-                    isPrime[j] = false;
-                }
-            }
-        }
-
-        // Count the number of primes we've found, and put them
-        // sequentially in an appropriately sized array.
-        int count = trueCount(isPrime);
-
-        int[] primes = new int[count];
-        int pIndex = 0;
-
-        for (int i = 2; i < max; i++) {
-            if (isPrime[i]) {
-                primes[pIndex] = i;
-                pIndex++;
-            }
-        }
-
-        return primes;
-    }
-
-    // Count the number of true values in an array of boolean values, arr
-    public static int trueCount(boolean[] arr) {
-        int count = 0;
-        for (boolean b : arr) {
-            if (b)
-                count++;
-        }
-        return count;
-    }
-
-    // Returns an array of all prime numbers up to ROOT_MAX
-    public static int[] getSmallPrimes() {
-        return getSmallPrimesUpTo(ROOT_MAX);
-    }
-
-
-    // Compute the first primes.length prime numbers and write them
-    // sequentially into the array primes.
     public static void optimizedPrimes(int[] primes) {
 
-        // compute small prime values
-        int[] smallPrimes = getSmallPrimes();
-        int nPrimes = primes.length;
+        int [] smallPrimes = Primes.getSmallPrimes();
+
+        int nextIndex = smallPrimes.length;
+
+        // example found here: https://www.youtube.com/watch?v=zK_Gi5X0jpc
+        System.arraycopy(smallPrimes, 0, primes, 0, smallPrimes.length);
+
+        // creating the thread pool.
+        int nThreads = Runtime.getRuntime().availableProcessors();
+
+        ExecutorService pool = Executors.newFixedThreadPool(nThreads);
+
+        int block_increment =  (MAX_VALUE - ROOT_MAX)/nThreads;
+
+        System.out.println(" the value of block_increment is " + block_increment);
+        /*
+        went with assigning larger tasks  because assigning smaller tasks to a pool is more computationally expensive.
+         */
+
+        //boolean to hold whether each number is a prime number.
+        boolean [] isPrime = new boolean [block_increment];
+
+        // use a simple list //linkedblockingqueue will execute the operation in a sequential manner.
+        ArrayBlockingQueue<Future<boolean [] >> results = new ArrayBlockingQueue <Future<boolean[]>> (20);
 
 
-        // write small primes to primes
-        int count = 0;
-        int minSize = Math.min(nPrimes, smallPrimes.length);
-        for (; count < minSize; count++) {
-            primes[count] = smallPrimes[count];
-        }
+        int numTasks = 0;
 
-        // check if we've already filled primes, and return if so
-        if (nPrimes == minSize) {
-            return;
-        }
 
-        // Apply the sieve of Eratosthenes to find primes. This
-        // procedure partitions the sieving task up into several
-        // blocks, where each block isPrime stores boolean values
-        // associated with ROOT_MAX consecutive numbers. Note that
-        // partitioning the problem in this way is necessary because
-        // we cannot create a boolean array of size MAX_VALUE.
-        boolean[] isPrime = new boolean[ROOT_MAX];
+            for (long i = ROOT_MAX; i < MAX_VALUE; i+= block_increment) {
 
-        for (long curBlock = ROOT_MAX; curBlock < MAX_VALUE; curBlock += ROOT_MAX) {
-            primeBlock(isPrime, smallPrimes, (int) curBlock);
-            for (int i = 0; i < isPrime.length && count < nPrimes; i++) {
-                if (isPrime[i]) {
-                    primes[count++] = (int) curBlock + i;
-                }
+
+                long endIndex = Math.min((i+block_increment), (MAX_VALUE));
+                results.add(pool.submit(new isPrimeTask(isPrime, smallPrimes, i , endIndex)));
+                numTasks++;
+          //! were in use until recently      System.out.println("iteration " + numTasks+ " started from i = " + (i) + " to endIndex = "+ endIndex);
+          // ! was in use until recently      System.out.println("started from ");
             }
+
+      //! were in use until recently.  System.out.println(" the size of the linkedblockingqueue is " + results.size());
+
+            // just check the ending, the start and the leftover.
+
+        /*
+        array blocking queue take method?
+        https://www.geeksforgeeks.org/arrayblockingqueue-take-method-in-java/
+         */
+        int start_offset = ROOT_MAX;
+      //! was in use until recently  System.out.println(" is start_offset equal to " + start_offset + " primes[smallPrimes.length] " + primes[smallPrimes.length - 1] );
+
+
+        /** each time we go down this loop, by removing the task at the head, the new Task is at position 0.
+
+         */
+        // reset what follows:
+        for (int Task = 0; Task<numTasks; Task++)
+         try {
+             // removing and returning the head of the blocking queue
+             // and the position of the boolean array in the blocking queue corresponds
+             // to the index of the task.
+
+
+         boolean [] result = results.take().get();
+
+  //! was in use until recently
+          //    System.out.println(" the value of result.length is " +result.length);
+
+//             System.out.println("Task number " + Task + " and nextIndex is " + (nextIndex)
+//                     + " and the end of nextIndex should be: " + (nextIndex+result.length)
+//                     + " and the numbers at those indexes are: " +  start_offset + (int) (block_increment*Task) +  " and "
+//                     + (int) (block_increment*Task) + result.length);
+
+             ///!:!redo what follows! reset it.
+       //      for (int j = 0; j<result.length && nextIndex <primes.length; j++) {
+             for (int j = 0; j<2000; j++){
+       // !! return this:   for (int j = 0; j<result.length; j++) {
+             //j is the within block offset
+             if((result[j]) && Task == 0){
+            primes[nextIndex++] = (start_offset + 1) + (int) (result.length*Task) + j;
+
+               //  System.out.println("thanks to task " + Task + " now next Index is " + nextIndex + " and value is " + ((start_offset + 1) + (int) (result.length*Task) + j));
+
+        //     primes[start_offset + (int) (block_increment*Task) + j]
+             }
+         }
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }
 
-    // Compute a block of prime values between start and start +
-    // isPrime.length. Specifically, after calling this method
-    // isPrime[i] will be true if and only if start + i is a prime
-    // number, assuming smallPrimes contains all prime numbers of to
-    // sqrt(start + isPrime.length).
-    private static void primeBlock(boolean[] isPrime, int[] smallPrimes, int start) {
 
-        // initialize isPrime to be all true
-        for (int i = 0; i < isPrime.length; i++) {
-            isPrime[i] = true;
-        }
+        pool.shutdown();
 
-        for (int p : smallPrimes) {
 
-            // find the next number >= start that is a multiple of p
-            int i = (start % p == 0) ? start : p * (1 + start / p);
-            i -= start;
 
-            while (i < isPrime.length) {
-                isPrime[i] = false;
-                i += p;
-            }
-        }
-    }
+
+
 }
+
+     public static boolean debug_simple () {
+        return false;
+    }
+   public static  boolean debug_complex () {
+        return false;
+    }
+
+
+}
+

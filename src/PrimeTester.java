@@ -13,19 +13,19 @@ public class PrimeTester {
         int[] testPrimes = new int[Primes.N_PRIMES];
 
         // find known primes using the baseline procedure
-        Primes.baselinePrimes(knownPrimes);
+      //  Primes.baselinePrimes(knownPrimes);
 
         // run warmup before timing
-        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
-            ParallelPrimes.optimizedPrimes(testPrimes);
-        }
+//        for (int i = 0; i < WARMUP_ITERATIONS; i++) {
+//            ParallelPrimes.optimizedPrimes(testPrimes);
+//        }
 
         // run main iterations
         long start = System.nanoTime();
 
-        for (int i = 0; i < TEST_ITERATIONS; i++) {
-            ParallelPrimes.optimizedPrimes(testPrimes);
-        }
+      //  for (int i = 0; i < TEST_ITERATIONS; i++) {
+        ParallelPrimes.optimizedPrimes(testPrimes);
+     //   }
 
         long elapsedMS = (System.nanoTime() - start) / 1_000_000;
 

@@ -5,14 +5,12 @@ public class Primes {
 
     public static final int MAX_VALUE = Integer.MAX_VALUE;
     public static final int N_PRIMES = 105_097_565;
-    public static final int ROOT_MAX = (int) Math.sqrt(MAX_VALUE);
-    public static final int MAX_SMALL_PRIME = 1 << 20; //1048576
+    public static final int ROOT_MAX = (int) Math.sqrt(MAX_VALUE); //10,249
+    public static final int MAX_SMALL_PRIME = 1 << 20; //1,048,576
 
     // Use the sieve of Eratosthenes to compute all prime numbers up
     // to max. The largest allowed value of max is MAX_SMALL_PRIME.
     public static int[] getSmallPrimesUpTo(int max) {
-
-        System.out.println("max small prime " + MAX_SMALL_PRIME);
 
         // check that the value max is in bounds, and throw an
         // exception if not
@@ -20,6 +18,7 @@ public class Primes {
             throw new RuntimeException("The value " + max + "exceeds the maximum small prime value (" + MAX_SMALL_PRIME + ")");
         }
 
+        //array must be for the small primes.
         // isPrime[i] will be true if and only if i is
         // prime. Initially set isPrime[i] to true for all i >= 2.
         boolean[] isPrime = new boolean[max];
@@ -54,7 +53,7 @@ public class Primes {
 
         for (int i = 2; i < max; i++) {
             if (isPrime[i]) {
-                primes[pIndex] = i;
+                primes[pIndex] = i; //any number x is at position isPrime[x].
                 pIndex++;
             }
         }
@@ -62,13 +61,15 @@ public class Primes {
         return primes;
     }
 
-    // Count the number of true values in an array of boolean values, arr
+    // Count the number of true values in an array of boolean values,
+    // arr
     public static int trueCount(boolean[] arr) {
         int count = 0;
         for (int i = 0; i < arr.length; i++) {
             if (arr[i])
                 count++;
         }
+
         return count;
     }
 
@@ -83,6 +84,7 @@ public class Primes {
     // isPrime[i] will be true if and only if start + i is a prime
     // number, assuming smallPrimes contains all prime numbers of to
     // sqrt(start + isPrime.length).
+    //remember that in order to find prime numbers, we exclude multiples (of each smallPrimes; hence we start by p in smallPrimes), hence we need the smallPrimes array.
     private static void primeBlock(boolean[] isPrime, int[] smallPrimes, int start) {
 
         // initialize isPrime to be all true
@@ -95,6 +97,8 @@ public class Primes {
             // find the next number >= start that is a multiple of p
             int i = (start % p == 0) ? start : p * (1 + start / p);
             i -= start;
+            //the previous line is to ensure that we don't  use the actual values of the
+
 
             while (i < isPrime.length) {
                 isPrime[i] = false;
