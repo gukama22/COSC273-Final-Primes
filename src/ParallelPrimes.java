@@ -114,6 +114,7 @@ public class ParallelPrimes {
             e.printStackTrace();
         }
 
+         primes[N_PRIMES - 1] =  MAX_VALUE;
 
         pool.shutdown();
 
