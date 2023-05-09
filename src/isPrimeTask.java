@@ -32,7 +32,7 @@ public class isPrimeTask implements Callable <boolean[]>{
             i -= startIndex;
 
             // finding more
-            while (i < toBeComputed.length && i <= endIndex - startIndex) {
+            while (i < toBeComputed.length ) {
                 toBeComputed[i] = false;
                 i += p;
             }
@@ -40,3 +40,5 @@ public class isPrimeTask implements Callable <boolean[]>{
         return toBeComputed;
     }
 }
+
+
