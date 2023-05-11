@@ -21,6 +21,8 @@ public class isPrimeTask implements Callable <boolean[]>{
     }
 
     @Override
+    // Using The Sieve of Eratosthenes to find all the multiples of smallPrimes in the toBeComputed interval;
+    // The sieve of Eratosthenes is defined: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes.
     public boolean[] call()  {
 
         Arrays.fill(toBeComputed, true);
