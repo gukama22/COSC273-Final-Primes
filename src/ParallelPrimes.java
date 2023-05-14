@@ -1,124 +1,1 @@
-// importing packages:
-
-import java.util.ArrayList;
-import java.util.concurrent.*;
-import static java.lang.Math.*;
-
-public class ParallelPrimes {
-
-    //copied from ParallePrimes.
-    public static final int MAX_VALUE = Integer.MAX_VALUE; //2^31-1 = 2147483647
-    public static final int N_PRIMES = 105_097_565;
-    public static final int ROOT_MAX = (int) Math.sqrt(MAX_VALUE);
-
-
-    // replace this string with your team name
-    public static final String TEAM_NAME = "Sunny-Day";
-//    public static void optimizedPrimes(int[] primes) {
-//        Primes.baselinePrimes(primes);
-//    }
-
-    public static void optimizedPrimes(int[] primes) {
-
-        // getting the first primes until ROOT_MAX.
-        int[] smallPrimes = Primes.getSmallPrimes();
-
-        // example of the use of arraycopy found here: https://www.youtube.com/watch?v=zK_Gi5X0jpc
-
-        // Initializing the prime numbers array by first storing the known small primes up to ROOT_MAX.
-       // The 'arraycopy' method is used to copy the elements from the small primes array to the beginning of the primes array.
-       // The remaining primes will be found and added to the primes array later.
-
-        System.arraycopy(smallPrimes, 0, primes, 0, smallPrimes.length);
-
-        // The next available index in the primes array is the one immediately after the end of the small primes.
-        int nextIndex = smallPrimes.length;
-
-        // determining  the number of available processors in the system to determine the optimal number of threads
-        // to use for parallel processing.
-        int nThreads = Runtime.getRuntime().availableProcessors();
-
-        //creating a thread pool with a fixed number of threads based on the number of available processors.
-        ExecutorService pool = Executors.newFixedThreadPool(nThreads);
-
-        //because finding which numbers from ROOT_MAX to MAX_VAlUE is computationally demanding, we
-        // are partitioning the above-mentioned range into smaller intervals.
-        // the size of each interval is determined by dividing the total range by the number of threads.
-
-        int block_increment = (MAX_VALUE - ROOT_MAX) / nThreads;
-
-
-        // I was first introduced to what an array blocking queue thanks to Prof. Rosenbaum:
-        // https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/concurrent/package-summary.html
-
-        // an ArrayBlockingQueue is a data structure that will allow us to store the results of determining whether
-        // numbers in a certain range are prime numbers.
-        // Since the computations are done on an interval, the result of the operation is saved in
-        // an array. We had to use a future object because it allows us to return something from
-        // non-simultaneous computation.
-
-        //I figured that the capacity of the arrayblockingqueue could be 20 through a series of trials and errors.
-      //  ArrayBlockingQueue<Future<boolean[]>> results = new ArrayBlockingQueue<Future<boolean[]>>(20);
-        ArrayList<Future<boolean[]>> results = new ArrayList<Future<boolean[]>>(20)  ;
-        // Initializing a counter to keep track of the number of tasks created.
-        int numTasks = 0;
-
-        // Looping through the list of elements from ROOT_MAX to MAX_VALUE with a block_increment interval
-        // in order to determine whether each number in the interval is a prime number.
-
-        for (long i = ROOT_MAX; i < MAX_VALUE; i += block_increment) {
-
-            //since the number of numbers between ROOT_MAX and MAX_VALUE might not be divisible by 8 (the number of my processors),
-            // not all intervals need to be of block_increment size, especially not the last one.
-          //  long endIndex = Math.min((i + block_increment), (MAX_VALUE)); //credits to Naila Thevenot for a useful conversation about why this line is useful
-
-         //   boolean[] isPrime = new boolean[(int) (endIndex - i)];
-
-
-            // Initializing a task to find prime numbers, submitting it to the thread pool, and adding the result to the results arrayBlockingQueue.
-            // The tasks are submitted sequentially, and the results are added in the same order. However, there's no sequential restriction on how they are computed.
-            results.add(pool.submit(new isPrimeTask(new boolean[(int) (Math.min((i + block_increment), (MAX_VALUE)) - i)], smallPrimes, i, Math.min((i + block_increment), (MAX_VALUE)))));
-            numTasks++;
-
-        }
-
-        /*
-        array blocking queue take method?
-        https://www.geeksforgeeks.org/arrayblockingqueue-take-method-in-java/
-         */
-        int start_offset = ROOT_MAX;
-
-
-// Iterate through each task and its corresponding results by dequeuing the tasks from the ArrayBlockingQueue using .take().get()
-// method to avoid reading the results associated multiple times. For each boolean value that is true, since it corresponds to a prime number,
-// add the prime number back to the primes array, which contains all the prime numbers between ROOT_MAX and MAX_VALUE. We also have to be mindful
-// of the offset, we start filling the array by index = smallPrimes.length(), because we added the small primes to the bigger array.
-
-        for (int Task = 0; Task < numTasks; Task++)
-            try {
-
-                boolean[] result = results.get(Task).get();
-                for (int j = 0; j < result.length; j++) {
-                    if ((result[j])) {
-                        primes[nextIndex++] = (start_offset) + (int) (result.length * Task) + j;
-                    }
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-        // The interval of numbers to be evaluated cannot include Integer.MAX_VALUE, so I intentionally had to add the
-        // last number in the interval that is a prime number to the primes array.
-
-        primes[N_PRIMES - 1] = MAX_VALUE;
-
-        // After adding all prime numbers to the primes array, shut down the thread pool.
-        pool.shutdown();
-
-    }
-
-
-
-}
-
+// importing packages:import org.w3c.dom.ls.LSOutput;import java.util.ArrayList;import java.util.Arrays;import java.util.BitSet;import java.util.concurrent.*;import java.util.Arrays;import java.util.concurrent.Callable;import java.util.concurrent.ExecutorService;import java.util.concurrent.Executors;public class ParallelPrimes {    //copied from ParallelPrimes.    public static final int MAX_VALUE = Integer.MAX_VALUE; //2^31-1 = 2147483647    public static final int N_PRIMES = 105_097_565;    public static final int ROOT_MAX = (int) Math.sqrt(MAX_VALUE);    // replace this string with your team name    public static final String TEAM_NAME = "Sunny-Day";//    public static void optimizedPrimes(int[] primes) {//        Primes.baselinePrimes(primes);//    }    public static void optimizedPrimes(int[] primes) {        // getting the first primes until ROOT_MAX.        int[] smallPrimes = Primes.getSmallPrimes();        System.arraycopy(smallPrimes, 0, primes, 0, smallPrimes.length);        // The next available index in the primes array is the one immediately after the end of the small primes.        int nextIndex = smallPrimes.length;        int numPrimes = nextIndex;        int nThreads = Runtime.getRuntime().availableProcessors();        //creating a thread pool with a fixed number of threads based on the number of available processors.        ExecutorService pool = Executors.newFixedThreadPool(nThreads);        int block_increment = (MAX_VALUE - ROOT_MAX) / nThreads;        int numTasks =(int)Math.ceil((double)(MAX_VALUE - ROOT_MAX) / block_increment) ;        ArrayList<Future<BitSet>> results = new ArrayList<Future<BitSet>>(numTasks)  ;        for (long i = ROOT_MAX; i < MAX_VALUE; i += block_increment) {           long endIndex = Math.min((i + block_increment), (MAX_VALUE)); //credits to Naila Thevenot for a useful conversation about why this line is useful            results.add(pool.submit(new isPrimeTask(new BitSet((int)(endIndex - i +1)), smallPrimes, i, endIndex)));            //numTasks++;        }      //  System.out.println(" Number of tasks is " + results.size() + " or " + numTasks) ;        int start_offset = ROOT_MAX;            try {                for (int Task = 0; Task < results.size(); Task++){                   // System.out.println(" Value of numTasks is: " + numTasks + " and task number is: " + Task);                BitSet result = results.get(Task).get();                   // System.out.println("the size of results so far is : " + results.size());              //  System.out.println("Processing Task " + Task + " and it associated with a number of prime equal to: " + result.cardinality());              //  System.out.println(result);                  //  System.out.println(" Processing task number " + Task);                   // System.out.println(" result.cardinality equals " + result.cardinality());                //int bit_index =  result.nextSetBit(0);                int n_primes = 0;                for(int bit_set = 0; bit_set < result.cardinality() && numPrimes <(N_PRIMES -1); bit_set++){                   // System.out.println(bit_index);                    if(result.get(bit_set)){                    primes[nextIndex++] = bit_set + start_offset + (block_increment * Task);                    n_primes ++;                    numPrimes++;}                }               //     System.out.println("done with taskk " + Task);            }               // System.out.println(" Right after TASK 0 ?");            }// catch ( CompletionException f){             //   f.printStackTrace();       // }            catch (Exception e) {                e.printStackTrace();            }        primes[N_PRIMES - 1] = MAX_VALUE;        pool.shutdown();       // System.out.println(" Right after poolshutdown?");    }    boolean printSimple (){        return false;    }    boolean print_complex(){        return true;    }}class isPrimeTask implements Callable<BitSet> {    // static final VectorSpecies<Float> SPECIES = FloatVector.SPECIES_PREFERRED;    private BitSet toBeComputed;    private int[] smallPrimes;    //  private int id;    private long startIndex;    private long endIndex;    public isPrimeTask(BitSet toBeComputed, int[] smallPrimes, long startIndex, long endIndex) {        super();        this.toBeComputed = toBeComputed;        this.smallPrimes = smallPrimes;        // this.id = id;        this.startIndex = startIndex;        this.endIndex = endIndex;    }    @Override    // Using The Sieve of Eratosthenes to find all the multiples of smallPrimes in the toBeComputed interval;    // The sieve of Eratosthenes is defined: https://en.wikipedia.org/wiki/Sieve_of_Eratosthenes.    public BitSet call() {      //  Arrays.fill(toBeComputed, true);      //   System.out.println(" startIndex is " + startIndex + " and endIndex is " + endIndex);        toBeComputed.set(0, (int)(endIndex - startIndex));       // System.out.println(" the size of smallPrimes is " + smallPrimes.length);        for (int p : smallPrimes) {            // find the next number >= start that is a multiple of p            int i = (int) ((startIndex % p == 0) ? startIndex : p * (1 + startIndex / p));            i -= startIndex;            //System.out.println(" value of i " + i);            // finding more multiples.            while (i <  (int)(endIndex - startIndex + 1)) {                toBeComputed.set(i, false);                i += p;             //   System.out.println(" hey this is " + i + " this is size " + (int)(endIndex - startIndex + 1));            }        }       // System.out.println("to Be Computed from " + startIndex  + " to " + endIndex + " and cardinality equals " + toBeComputed.cardinality());        return toBeComputed;    }}
