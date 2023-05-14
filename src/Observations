@@ -2,10 +2,10 @@ When I add the warm up to both classes:
 Computing primes up to 2147483647
 Team: Sunny-Day
 correctness test passed
-elapsed time: 263133ms
+elapsed time: 263_133ms
 
 When I removed the warm up calls to both classes:
 Computing primes up to 2147483647
 Team: Sunny-Day
 correctness test passed
-elapsed time: 25602ms
+elapsed time: 25_602ms
