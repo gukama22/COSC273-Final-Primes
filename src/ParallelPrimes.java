@@ -18,16 +18,15 @@ public class ParallelPrimes {
         System.arraycopy(smallPrimes, 0, primes, 0, smallPrimes.length);
 
         int nextIndex = smallPrimes.length;
-        int numPrimes = nextIndex;
-        int two_hundred_thousands = 0;
-
 
         ExecutorService pool = Executors.newFixedThreadPool(nThreads);
         int block_increment = ((MAX_VALUE - ROOT_MAX) / nThreads);
         int numTasks =(int)Math.ceil((double)(MAX_VALUE - ROOT_MAX) / block_increment) ;
 
         ArrayList<Future<int[]>> results = new ArrayList<Future<int[]>>(numTasks)  ;
+
         int start_offset = ROOT_MAX;
+        int num_Task = 0;
         int Task_number  = 0;
         try {
         for (long i = ROOT_MAX; i < MAX_VALUE; i += block_increment) {
@@ -36,13 +35,10 @@ public class ParallelPrimes {
             Task_number++;
         }
 
-        int num_Task = 0;
-
-
 for (Future<int []> result_1 : results){
     int[] result = result_1.get();
 
-    System.arraycopy(result, nextIndex, primes, nextIndex + (result.length-1), result.length);
+    System.arraycopy(result, 0, primes,  nextIndex, result.length);
     num_Task ++;
     nextIndex = nextIndex+ result.length;
 }
@@ -85,7 +81,7 @@ class isPrimeTask implements Callable<int[]> {
     public int[] call() {
         toBeComputed.set(0, (int)(endIndex - startIndex)); //setting all the bits in the bitset to true.
 
-        System.out.println(" AT FIRST from start_index " + startIndex + " the number of prime numbers is " + toBeComputed.cardinality());
+       // System.out.println(" AT FIRST from start_index " + startIndex + " the number of prime numbers is " + toBeComputed.cardinality());
         for (int p : smallPrimes) {
             int i = (int) ((startIndex % p == 0) ? startIndex : p * (1 + startIndex / p));
             i -= startIndex;
@@ -94,11 +90,12 @@ class isPrimeTask implements Callable<int[]> {
                 i += p;
             }
         }
-        //System.out.println(" from start_index " + startIndex + " the number of prime numbers is " + toBeComputed.cardinality());
+        System.out.println( " for "  + ID + " from start_index " + startIndex + " the number of prime numbers is " + toBeComputed.cardinality());
         int [] toReturn = new  int [toBeComputed.cardinality()];
 
         int bit_index =  toBeComputed.nextSetBit(0);
 
+        System.out.println(" bit_index equals " + bit_index + " and the number of bits is equal to " + toBeComputed.cardinality());
         for(int i = 0; i<toReturn.length; i++){
             toReturn[i] = bit_index + startOffset +  block_increment* ID;
             bit_index = (toBeComputed.nextSetBit(bit_index + 1));
@@ -106,9 +103,10 @@ class isPrimeTask implements Callable<int[]> {
 
            // bit_index = (result.nextSetBit(bit_index + 1));
         }
-        for( int k = 23; k< 100; k++){
+        if(ID == 0){
+        for( int k = 0; k< 23; k++){
             System.out.println(" printing what's inside " + toReturn[k] + " for task " + ID);
-        }
+        }}
 
         return toReturn;
     }
