@@ -26,14 +26,19 @@ public class ParallelPrimes {
         int nextIndex = smallPrimes.length;
 
         ExecutorService pool = Executors.newFixedThreadPool(nThreads);
-        int block_increment = ((MAX_VALUE - ROOT_MAX) / nThreads); //determining the size of each block of numbers to be evaluated.
-        int numTasks = (int) Math.ceil((double) (MAX_VALUE - ROOT_MAX) / block_increment);
-        // the number of tasks to be created will dependent on taht.
 
-        //create the arrayList that will hold the results of the evaluateion.
+        //determining the size of each block of numbers to be evaluated.
+        // the number of tasks to be created will dependent on  the block_increment
+
+        int block_increment = ((MAX_VALUE - ROOT_MAX) / nThreads);
+        int numTasks = (int) Math.ceil((double) (MAX_VALUE - ROOT_MAX) / block_increment);
+
+
+        //create the arrayList that will hold the results of the evaluation, which will be returned as an array of
+        // integers that are prime numbers within a specific interval.
         ArrayList<Future<int[]>> results = new ArrayList<Future<int[]>>(numTasks);
 
-        //
+
         int start_offset = ROOT_MAX;
         int Task_number = 0;
 
@@ -58,7 +63,7 @@ public class ParallelPrimes {
         }
 
         // Primes.baselinePrimes(primes);
-         primes[N_PRIMES - 1] = MAX_VALUE;
+        primes[N_PRIMES - 1] = MAX_VALUE;
     }
 }
 
@@ -88,18 +93,18 @@ class isPrimeTask implements Callable<int[]> {
 
     @Override
     public int[] call() {
-        toBeComputed.set(0, (int)(endIndex - startIndex)); //setting all the bits in the bitset to true.
+        toBeComputed.set(0, (int) (endIndex - startIndex)); //setting all the bits in the bitset to true.
 
-        System.out.println(" cardinality.length is " + toBeComputed.cardinality());
+        //System.out.println(" cardinality.length is " + toBeComputed.cardinality());
         for (int p : smallPrimes) {
             long firstMultiple = (startIndex % p == 0) ? startIndex : p * (1 + startIndex / p);
             for (long multiple = firstMultiple; multiple <= endIndex; multiple += p) {
-                toBeComputed.clear((int)(multiple - startIndex));
+                toBeComputed.clear((int) (multiple - startIndex));
             }
         }
 
         int cardinality = toBeComputed.cardinality();
-        int [] toReturn = new int[cardinality];
+        int[] toReturn = new int[cardinality];
 
         int bit_index = toBeComputed.nextSetBit(0);
         int nextIndex = 0;
@@ -110,4 +115,5 @@ class isPrimeTask implements Callable<int[]> {
         }
 
         return toReturn;
-    } }
+    }
+}
