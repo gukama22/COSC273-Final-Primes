@@ -38,9 +38,9 @@ public class ParallelPrimes {
 for (Future<int []> result_1 : results){
     int[] result = result_1.get();
 
-    System.arraycopy(result, 0, primes,  nextIndex, result.length);
+    System.arraycopy(result, 0, primes,  nextIndex + result.length*num_Task , result.length);
     num_Task ++;
-    nextIndex = nextIndex+ result.length;
+    //nextIndex = nextIndex+ result.length;
 }
 
        } catch ( Exception f){ //InterruptException is thrown when a thread is interrupted while it is waiting, sleeping or blocked for some reasonl
@@ -74,14 +74,14 @@ class isPrimeTask implements Callable<int[]> {
         this.endIndex = endIndex;
         this.ID = ID;
         this.startOffset = startOffset;
-
+        this.block_increment = block_increment;
     }
 
     @Override
     public int[] call() {
         toBeComputed.set(0, (int)(endIndex - startIndex)); //setting all the bits in the bitset to true.
 
-       // System.out.println(" AT FIRST from start_index " + startIndex + " the number of prime numbers is " + toBeComputed.cardinality());
+        System.out.println(" AT FIRST from start_index " + startIndex + " the number of prime numbers is " + toBeComputed.cardinality());
         for (int p : smallPrimes) {
             int i = (int) ((startIndex % p == 0) ? startIndex : p * (1 + startIndex / p));
             i -= startIndex;
@@ -90,23 +90,27 @@ class isPrimeTask implements Callable<int[]> {
                 i += p;
             }
         }
-        System.out.println( " for "  + ID + " from start_index " + startIndex + " the number of prime numbers is " + toBeComputed.cardinality());
+       // System.out.println( " for "  + ID + " from start_index " + startIndex + " the number of prime numbers is " + toBeComputed.cardinality());
         int [] toReturn = new  int [toBeComputed.cardinality()];
 
         int bit_index =  toBeComputed.nextSetBit(0);
 
-        System.out.println(" bit_index equals " + bit_index + " and the number of bits is equal to " + toBeComputed.cardinality());
+     //   System.out.println(" bit_index equals " + bit_index + " and the number of bits is equal to " + toBeComputed.cardinality());
+//        if(ID == 1){
+//            System.out.println( "startOffset is " + startOffset + " block_increment*ID " + (block_increment*ID) + " and nextSetBIt " + (toBeComputed.nextSetBit(bit_index + 1) ));
+//        }
         for(int i = 0; i<toReturn.length; i++){
             toReturn[i] = bit_index + startOffset +  block_increment* ID;
             bit_index = (toBeComputed.nextSetBit(bit_index + 1));
 
 
+
            // bit_index = (result.nextSetBit(bit_index + 1));
         }
-        if(ID == 0){
-        for( int k = 0; k< 23; k++){
-            System.out.println(" printing what's inside " + toReturn[k] + " for task " + ID);
-        }}
+ //       if(ID == 1){
+//        for( int k = 0; k< 23; k++){
+//            System.out.println(" printing what's inside " + toReturn[k] + " for task " + ID);
+//        }}
 
         return toReturn;
     }
