@@ -6,14 +6,16 @@ public class PrimeTester {
     public static final int WARMUP_ITERATIONS = 5;
     public static final int TEST_ITERATIONS = 10;
 
-    public static void main (String[] args) {
+    public static void main(String[] args) {
         System.out.println("Computing primes up to " + Primes.MAX_VALUE);
 
-        int[] knownPrimes= new int[Primes.N_PRIMES];
+        int[] knownPrimes = new int[Primes.N_PRIMES];
         int[] testPrimes = new int[Primes.N_PRIMES];
 
         // find known primes using the baseline procedure
         Primes.baselinePrimes(knownPrimes);
+
+
 
         // run warmup before timing
         for (int i = 0; i < WARMUP_ITERATIONS; i++) {
@@ -23,9 +25,9 @@ public class PrimeTester {
         // run main iterations
         long start = System.nanoTime();
 
-        for (int i = 0; i < TEST_ITERATIONS; i++) {
-            ParallelPrimes.optimizedPrimes(testPrimes);
-        }
+         for (int i = 0; i < TEST_ITERATIONS; i++) {
+         ParallelPrimes.optimizedPrimes(testPrimes);
+         }
 
         long elapsedMS = (System.nanoTime() - start) / 1_000_000;
 
